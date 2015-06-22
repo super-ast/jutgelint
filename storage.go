@@ -19,7 +19,7 @@ import (
 
 const (
 	// Length of the random hexadecimal ids. At least 4.
-	idSize = 8
+	idSize = 16
 	// Number of times to try getting an unused random id
 	randTries = 10
 )
