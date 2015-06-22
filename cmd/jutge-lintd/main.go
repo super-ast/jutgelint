@@ -5,14 +5,12 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/mvdan/bytesize"
-	"github.com/ogier/pflag"
 )
 
 const (
@@ -25,13 +23,13 @@ const (
 	invalidID     = "invalid id"
 	unknownAction = "unsupported action"
 
-	maxSize = 1 * bytesize.MB
+	maxSize = 1 * 1024 * 1024
+	timeout = 10 * time.Second
 )
 
 var (
-	siteURL = pflag.StringP("url", "u", "http://localhost:8080", "URL of the site")
-	listen  = pflag.StringP("listen", "l", ":8080", "Host and port to listen to")
-	timeout = pflag.DurationP("timeout", "T", 5*time.Second, "Timeout of HTTP requests")
+	siteURL = flag.String("u", "http://localhost:8080", "URL of the site")
+	listen  = flag.String("l", ":8080", "Host and port to listen to")
 )
 
 func getContentFromForm(r *http.Request) ([]byte, error) {
@@ -104,7 +102,7 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSize))
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 	content, err := getContentFromForm(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -126,10 +124,7 @@ func (h *httpHandler) setupStore(storageType string, args []string) error {
 }
 
 func main() {
-	pflag.Parse()
-	if maxSize > 1*bytesize.EB {
-		log.Fatalf("Specified a maximum review size that would overflow int64!")
-	}
+	flag.Parse()
 	loadTemplates()
 	var handler httpHandler
 	log.Printf("siteURL    = %s", *siteURL)
@@ -143,9 +138,7 @@ func main() {
 	}
 
 	var finalHandler http.Handler = handler
-	if *timeout > 0 {
-		finalHandler = http.TimeoutHandler(finalHandler, *timeout, "")
-	}
+	finalHandler = http.TimeoutHandler(finalHandler, timeout, "")
 	http.Handle("/", finalHandler)
 	log.Println("Up and running!")
 	log.Fatal(http.ListenAndServe(*listen, nil))
