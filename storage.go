@@ -18,22 +18,22 @@ import (
 )
 
 const (
-	// Length of the random hexadecimal ids assigned to pastes. At least 4.
+	// Length of the random hexadecimal ids. At least 4.
 	idSize = 8
-	// Number of times to try getting an unused random paste id
+	// Number of times to try getting an unused random id
 	randTries = 10
 )
 
 var (
-	// ErrPasteNotFound means that we could not find the requested paste
-	ErrPasteNotFound = errors.New("paste could not be found")
+	// ErrReviewNotFound means that we could not find the requested review
+	ErrReviewNotFound = errors.New("review could not be found")
 	// ErrNoUnusedIDFound means that we could not find an unused ID to
-	// allocate to a new paste
+	// allocate to a new review
 	ErrNoUnusedIDFound = errors.New("gave up trying to find an unused random id")
 )
 
-// A Paste represents the paste's content and information
-type Paste interface {
+// A Review represents the review's content and information
+type Review interface {
 	io.Reader
 	io.ReaderAt
 	io.Seeker
@@ -41,7 +41,7 @@ type Paste interface {
 	ModTime() time.Time
 }
 
-// ID is the binary representation of the identifier for a paste
+// ID is the binary representation of the identifier for a review
 type ID [idSize / 2]byte
 
 // IDFromString parses a hexadecimal string into an ID. Returns the ID and an
@@ -62,14 +62,14 @@ func (id ID) String() string {
 	return hex.EncodeToString(id[:])
 }
 
-// A Store represents a database holding multiple pastes identified by their
+// A Store represents a database holding multiple reviews identified by their
 // ids
 type Store interface {
-	// Get the paste known by the given ID and an error, if any.
-	Get(id ID) (Paste, error)
+	// Get the review known by the given ID and an error, if any.
+	Get(id ID) (Review, error)
 
-	// Put a new paste given its content. Will return the ID assigned to
-	// the new paste and an error, if any.
+	// Put a new review given its content. Will return the ID assigned to
+	// the new review and an error, if any.
 	Put(content []byte) (ID, error)
 }
 
@@ -92,7 +92,7 @@ type FileStore struct {
 	dir   string
 }
 
-type FilePaste struct {
+type FileReview struct {
 	file  *os.File
 	cache *fileCache
 }
@@ -102,23 +102,23 @@ type fileCache struct {
 	modTime time.Time
 }
 
-func (c FilePaste) Read(p []byte) (n int, err error) {
+func (c FileReview) Read(p []byte) (n int, err error) {
 	return c.file.Read(p)
 }
 
-func (c FilePaste) ReadAt(p []byte, off int64) (n int, err error) {
+func (c FileReview) ReadAt(p []byte, off int64) (n int, err error) {
 	return c.file.ReadAt(p, off)
 }
 
-func (c FilePaste) Seek(offset int64, whence int) (int64, error) {
+func (c FileReview) Seek(offset int64, whence int) (int64, error) {
 	return c.file.Seek(offset, whence)
 }
 
-func (c FilePaste) Close() error {
+func (c FileReview) Close() error {
 	return c.file.Close()
 }
 
-func (c FilePaste) ModTime() time.Time {
+func (c FileReview) ModTime() time.Time {
 	return c.cache.modTime
 }
 
@@ -144,18 +144,18 @@ func NewFileStore(dir string) (*FileStore, error) {
 	return s, nil
 }
 
-func (s *FileStore) Get(id ID) (Paste, error) {
+func (s *FileStore) Get(id ID) (Review, error) {
 	s.RLock()
 	defer s.RUnlock()
 	cached, e := s.cache[id]
 	if !e {
-		return nil, ErrPasteNotFound
+		return nil, ErrReviewNotFound
 	}
 	f, err := os.Open(cached.path)
 	if err != nil {
 		return nil, err
 	}
-	return FilePaste{file: f, cache: &cached}, nil
+	return FileReview{file: f, cache: &cached}, nil
 }
 
 func writeNewFile(filename string, data []byte) error {
@@ -184,12 +184,12 @@ func (s *FileStore) Put(content []byte) (ID, error) {
 	if err != nil {
 		return id, err
 	}
-	pastePath := pathFromID(id)
-	if err = writeNewFile(pastePath, content); err != nil {
+	reviewPath := pathFromID(id)
+	if err = writeNewFile(reviewPath, content); err != nil {
 		return id, err
 	}
 	s.cache[id] = fileCache{
-		path:    pastePath,
+		path:    reviewPath,
 		modTime: time.Now(),
 	}
 	return id, nil

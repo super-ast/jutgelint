@@ -48,8 +48,8 @@ func getContentFromForm(r *http.Request) ([]byte, error) {
 	return nil, errors.New("no code provided")
 }
 
-func setHeaders(header http.Header, id ID, paste Paste) {
-	modTime := paste.ModTime()
+func setHeaders(header http.Header, id ID, review Review) {
+	modTime := review.ModTime()
 	header.Set("Etag", fmt.Sprintf(`"%d-%s"`, modTime.Unix(), id))
 	header.Set("Content-Type", contentType)
 }
@@ -89,8 +89,8 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, invalidID, http.StatusBadRequest)
 		return
 	}
-	paste, err := h.store.Get(id)
-	if err == ErrPasteNotFound {
+	review, err := h.store.Get(id)
+	if err == ErrReviewNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -98,9 +98,9 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer paste.Close()
-	setHeaders(w.Header(), id, paste)
-	http.ServeContent(w, r, "", paste.ModTime(), paste)
+	defer review.Close()
+	setHeaders(w.Header(), id, review)
+	http.ServeContent(w, r, "", review.ModTime(), review)
 }
 
 func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,7 @@ func (h *httpHandler) setupStore(storageType string, args []string) error {
 func main() {
 	pflag.Parse()
 	if maxSize > 1*bytesize.EB {
-		log.Fatalf("Specified a maximum paste size that would overflow int64!")
+		log.Fatalf("Specified a maximum review size that would overflow int64!")
 	}
 	loadTemplates()
 	var handler httpHandler
