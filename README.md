@@ -1,3 +1,3 @@
-# lint-jutge
+# jutgelint
 
 A lint for Jutge.
