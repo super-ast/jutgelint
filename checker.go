@@ -25,14 +25,14 @@ var (
 	errDescRegex = regexp.MustCompile(`ERROR: ([^-]+) - (.+)`)
 )
 
-type Result struct {
+type Warning struct {
 	Line  int
 	Func  string
 	Short string
 	Long  string
 }
 
-func RunChecker(i io.Reader) ([]Result, error) {
+func RunChecker(i io.Reader) ([]Warning, error) {
 	//cmd := exec.Command("printer")
 	cmd := exec.Command("check", checkOpts...)
 	//stdin, err := cmd.StdinPipe()
@@ -49,15 +49,15 @@ func RunChecker(i io.Reader) ([]Result, error) {
 	//io.Copy(stdin, i)
 	//stdin.Close()
 	scanner := bufio.NewScanner(stdout)
-	var results []Result
-	var cur *Result
+	var warnings []Warning
+	var cur *Warning
 	for scanner.Scan() {
 		line := scanner.Text()
 		if s := lineRegex.FindStringSubmatch(line); s != nil {
 			if cur != nil {
-				results = append(results, *cur)
+				warnings = append(warnings, *cur)
 			}
-			cur = &Result{}
+			cur = &Warning{}
 			i, err := strconv.Atoi(s[1])
 			if err != nil {
 				return nil, err
@@ -71,5 +71,5 @@ func RunChecker(i io.Reader) ([]Result, error) {
 		}
 
 	}
-	return results, nil
+	return warnings, nil
 }
