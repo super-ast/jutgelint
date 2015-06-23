@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -22,11 +23,17 @@ func main() {
 	var json bytes.Buffer
 	switch *lang {
 	case "go":
-		jutgelint.EncodeJsonFromGoCode(os.Stdin, json)
+		jutgelint.EncodeJsonFromGoCode(os.Stdin, &json)
 	case "c++":
 		log.Fatalf("unimplemented")
 	default:
 		log.Fatalf("unsupported language: '%s'", *lang)
 	}
-	json.WriteTo(os.Stdout)
+	results, err := jutgelint.RunChecker(&json)
+	if err != nil {
+		log.Fatalf("Error when running the checker: %v", err)
+	}
+	for _, r := range results {
+		fmt.Printf("%#v\n", r)
+	}
 }
