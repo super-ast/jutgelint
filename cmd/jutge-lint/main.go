@@ -14,21 +14,18 @@ import (
 )
 
 var (
-	lang = flag.String("lang", "", "Language to use (go, c++)")
+	lang jutgelint.Lang
 )
+
+func init() {
+	flag.Var(&lang, "lang", "Language to use (c++, go)")
+}
 
 func main() {
 	flag.Parse()
 
 	var json bytes.Buffer
-	switch *lang {
-	case "go":
-		jutgelint.EncodeJsonFromGoCode(os.Stdin, &json)
-	case "c++":
-		log.Fatalf("unimplemented")
-	default:
-		log.Fatalf("unsupported language: '%s'", *lang)
-	}
+	jutgelint.EncodeJsonFromCode(lang, os.Stdin, &json)
 	results, err := jutgelint.RunChecker(&json)
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
