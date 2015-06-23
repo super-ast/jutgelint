@@ -5,7 +5,6 @@ package jutgelint
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os/exec"
 	"regexp"
@@ -16,6 +15,8 @@ var (
 	checkOpts = []string{"/home/mvdan/output.json", "--dead-assign", "--fors", "--local-decl", "--variable-init"}
 
 	lineRegex = regexp.MustCompile(`LINE: ([0-9]+)`)
+	funcRegex = regexp.MustCompile(`FUNCTION: (.+)`)
+	errDescRegex = regexp.MustCompile(`ERROR: ([^-]+) - (.+)`)
 )
 
 type Result struct {
@@ -46,9 +47,7 @@ func RunChecker(i io.Reader) ([]Result, error) {
 	var cur *Result
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
-		s := lineRegex.FindStringSubmatch(line)
-		if s != nil {
+		if s := lineRegex.FindStringSubmatch(line); s != nil {
 			if cur != nil {
 				results = append(results, *cur)
 			}
@@ -58,7 +57,13 @@ func RunChecker(i io.Reader) ([]Result, error) {
 				return nil, err
 			}
 			cur.Line = i
+		} else if s := funcRegex.FindStringSubmatch(line); s != nil {
+			cur.Func = s[1]
+		} else if s := errDescRegex.FindStringSubmatch(line); s != nil {
+			cur.Short = s[1]
+			cur.Long = s[2]
 		}
+
 	}
 	return results, nil
 }
