@@ -37,7 +37,7 @@ func RunChecker(i io.Reader) ([]Result, error) {
 	cmd := exec.Command("check", checkOpts...)
 	//stdin, err := cmd.StdinPipe()
 	//if err != nil {
-		//return nil, err
+	//return nil, err
 	//}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
