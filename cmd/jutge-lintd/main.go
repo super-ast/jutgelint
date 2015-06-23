@@ -117,28 +117,20 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s/%s\n", *siteURL, id)
 }
 
-func (h *httpHandler) setupStore(storageType string, args []string) error {
-	var err error
-	h.store, err = NewFileStore("code")
-	return err
-}
-
 func main() {
 	flag.Parse()
 	loadTemplates()
-	var handler httpHandler
 	log.Printf("siteURL    = %s", *siteURL)
 	log.Printf("listen     = %s", *listen)
-	log.Printf("maxSize    = %s", maxSize)
 
+	var handler httpHandler
 	var err error
 	handler.store, err = NewFileStore("code")
 	if err != nil {
 		log.Fatalf("Could not setup file store: %s", err)
 	}
 
-	var finalHandler http.Handler = handler
-	finalHandler = http.TimeoutHandler(finalHandler, timeout, "")
+	finalHandler := http.TimeoutHandler(handler, timeout, "")
 	http.Handle("/", finalHandler)
 	log.Println("Up and running!")
 	log.Fatal(http.ListenAndServe(*listen, nil))
