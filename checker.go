@@ -12,10 +12,16 @@ import (
 )
 
 var (
-	checkOpts = []string{"/home/mvdan/output.json", "--dead-assign", "--fors", "--local-decl", "--variable-init"}
+	checkOpts = []string{
+		"/home/mvdan/output.json",
+		"--dead-assign",
+		"--fors",
+		"--local-decl",
+		"--variable-init",
+	}
 
-	lineRegex = regexp.MustCompile(`LINE: ([0-9]+)`)
-	funcRegex = regexp.MustCompile(`FUNCTION: (.+)`)
+	lineRegex    = regexp.MustCompile(`LINE: ([0-9]+)`)
+	funcRegex    = regexp.MustCompile(`FUNCTION: (.+)`)
 	errDescRegex = regexp.MustCompile(`ERROR: ([^-]+) - (.+)`)
 )
 
@@ -31,7 +37,7 @@ func RunChecker(i io.Reader) ([]Result, error) {
 	cmd := exec.Command("check", checkOpts...)
 	//stdin, err := cmd.StdinPipe()
 	//if err != nil {
-	//return nil, err
+		//return nil, err
 	//}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
