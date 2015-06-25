@@ -3,9 +3,22 @@
 
 package jutgelint
 
-import "io"
+import (
+	"io"
+	"os/exec"
+)
 
 func encodeFromCpp(r io.Reader, w io.Writer) error {
-	// TODO
-	return nil
+	cmd := exec.Command("superast-cpp")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	cmd.Stdout = w
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	io.Copy(stdin, r)
+	stdin.Close()
+	return cmd.Wait()
 }
