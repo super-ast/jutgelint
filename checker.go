@@ -4,41 +4,33 @@
 package jutgelint
 
 import (
-	"bufio"
+	"encoding/json"
 	"io"
 	"os/exec"
-	"regexp"
-	"strconv"
 )
 
-var (
-	checkOpts = []string{
-		"/home/mvdan/output.json",
-		"--dead-assign",
-		"--fors",
-		"--local-decl",
-		"--variable-init",
-	}
-
-	lineRegex    = regexp.MustCompile(`LINE: ([0-9]+)`)
-	funcRegex    = regexp.MustCompile(`FUNCTION: (.+)`)
-	errDescRegex = regexp.MustCompile(`ERROR: ([^-]+) - (.+)`)
-)
-
-type Warning struct {
-	Line  int
-	Func  string
-	Short string
-	Long  string
+var checkOpts = []string{
+	"--dead-assign",
+	"--fors",
+	"--local-decl",
+	"--variable-init",
 }
 
-func RunChecker(i io.Reader) ([]Warning, error) {
-	//cmd := exec.Command("printer")
+type Warnings map[string][]Warning
+
+type Warning struct {
+	Line  int    `json:"line"`
+	Func  string `json:"function"`
+	Short string `json:"short_description"`
+	Long  string `json:"long_description"`
+}
+
+func RunChecker(i io.Reader) (Warnings, error) {
 	cmd := exec.Command("check", checkOpts...)
-	//stdin, err := cmd.StdinPipe()
-	//if err != nil {
-	//return nil, err
-	//}
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, err
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -46,30 +38,14 @@ func RunChecker(i io.Reader) ([]Warning, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	//io.Copy(stdin, i)
-	//stdin.Close()
-	scanner := bufio.NewScanner(stdout)
-	var warnings []Warning
-	var cur *Warning
-	for scanner.Scan() {
-		line := scanner.Text()
-		if s := lineRegex.FindStringSubmatch(line); s != nil {
-			if cur != nil {
-				warnings = append(warnings, *cur)
-			}
-			cur = &Warning{}
-			i, err := strconv.Atoi(s[1])
-			if err != nil {
-				return nil, err
-			}
-			cur.Line = i
-		} else if s := funcRegex.FindStringSubmatch(line); s != nil {
-			cur.Func = s[1]
-		} else if s := errDescRegex.FindStringSubmatch(line); s != nil {
-			cur.Short = s[1]
-			cur.Long = s[2]
-		}
-
+	io.Copy(stdin, i)
+	stdin.Close()
+	var warns Warnings
+	if err := json.NewDecoder(stdout).Decode(&warns); err != nil {
+		return nil, err
 	}
-	return warnings, nil
+	if err := cmd.Wait(); err != nil {
+		return nil, err
+	}
+	return warns, nil
 }

@@ -26,11 +26,11 @@ func main() {
 
 	var json bytes.Buffer
 	jutgelint.EncodeJsonFromCode(lang, os.Stdin, &json)
-	warnings, err := jutgelint.RunChecker(&json)
+	warns, err := jutgelint.RunChecker(&json)
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
 	}
-	for _, r := range warnings {
-		fmt.Printf("%#v\n", r)
+	for c := range warns {
+		fmt.Printf("%#v\n", c)
 	}
 }
