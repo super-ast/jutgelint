@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,6 +21,13 @@ var (
 
 func init() {
 	flag.Var(&lang, "lang", "Language to use (auto, c++, go)")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: jutgelint [input] [output]\n\n")
+		fmt.Fprintf(os.Stderr, "The input and output files default to standard input and standard output\n")
+		fmt.Fprintf(os.Stderr, "if none are specified.\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		flag.PrintDefaults()
+	}
 }
 
 func main() {
