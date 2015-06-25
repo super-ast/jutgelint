@@ -70,7 +70,7 @@ func main() {
 		log.Fatalf("Could not translate code into json: %v", err)
 	}
 
-	warns, err := jutgelint.RunChecker(&json)
+	warns, err := jutgelint.RunChecker(&json, jutgelint.CheckAll)
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
 	}

@@ -9,11 +9,20 @@ import (
 	"os/exec"
 )
 
-var checkOpts = []string{
-	"--dead-assign",
-	"--fors",
-	"--local-decl",
-	"--variable-init",
+const (
+	CheckDeadAssign int = 1 << iota
+	CheckFors
+	CheckLocalDecl
+	CheckVariableInit
+
+	CheckAll int = -1
+)
+
+var optArgs = map[int]string{
+	CheckDeadAssign:   "--dead-assign",
+	CheckFors:         "--fors",
+	CheckLocalDecl:    "--local-decl",
+	CheckVariableInit: "--variable-init",
 }
 
 type Warnings map[string][]Warning
@@ -25,8 +34,18 @@ type Warning struct {
 	Long  string `json:"long_description"`
 }
 
-func RunChecker(r io.Reader) (Warnings, error) {
-	cmd := exec.Command("check", checkOpts...)
+func getCheckOpts(checks int) []string {
+	var opts []string
+	for c := range optArgs {
+		if checks&c > 0 {
+			opts = append(opts, optArgs[c])
+		}
+	}
+	return opts
+}
+
+func RunChecker(r io.Reader, checks int) (Warnings, error) {
+	cmd := exec.Command("check", getCheckOpts(checks)...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
