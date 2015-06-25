@@ -15,9 +15,7 @@ import (
 	"github.com/mvdan/jutgelint"
 )
 
-var (
-	lang jutgelint.Lang = jutgelint.LangAuto
-)
+var lang jutgelint.Lang = jutgelint.LangAuto
 
 func init() {
 	flag.Var(&lang, "lang", "Language to use (auto, c++, go)")
@@ -66,7 +64,7 @@ func main() {
 		log.Fatalf("Error when reading code: %v", err)
 	}
 	var json bytes.Buffer
-	if err := jutgelint.EncodeJsonFromCode(lang, bytes.NewReader(code), &json); err != nil {
+	if err := jutgelint.EncodeJsonAST(lang, bytes.NewReader(code), &json); err != nil {
 		log.Fatalf("Could not translate code into json: %v", err)
 	}
 

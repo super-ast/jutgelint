@@ -30,7 +30,6 @@ func (l *Lang) String() string {
 }
 
 func (l *Lang) Set(s string) error {
-	s = strings.ToLower(s)
 	switch strings.ToLower(s) {
 	case "c++", "cpp", "cc":
 		*l = LangCpp
@@ -42,12 +41,12 @@ func (l *Lang) Set(s string) error {
 	return nil
 }
 
-func EncodeJsonFromCode(l Lang, r io.Reader, w io.Writer) error {
+func EncodeJsonAST(l Lang, r io.Reader, w io.Writer) error {
 	switch l {
 	case LangCpp:
-		return encodeJsonFromCppCode(r, w)
+		return encodeFromCpp(r, w)
 	case LangGo:
-		return encodeJsonFromGoCode(r, w)
+		return encodeFromGo(r, w)
 	default:
 		return errors.New("unknown language")
 	}

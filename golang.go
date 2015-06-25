@@ -13,7 +13,7 @@ import (
 	"github.com/mvdan/superast"
 )
 
-func encodeJsonFromGoCode(r io.Reader, w io.Writer) error {
+func encodeFromGo(r io.Reader, w io.Writer) error {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, "stdin.go", r, 0)
 	if err != nil {
