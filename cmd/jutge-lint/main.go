@@ -15,7 +15,7 @@ import (
 	"github.com/mvdan/jutgelint"
 )
 
-var lang jutgelint.Lang = jutgelint.LangAuto
+var lang = jutgelint.LangAuto
 
 func init() {
 	flag.Var(&lang, "lang", "Language to use (auto, c++, go)")
@@ -47,7 +47,9 @@ func main() {
 		}
 		if lang == jutgelint.LangAuto {
 			ext := filepath.Ext(args[0])
-			lang.Set(ext[1:])
+			if err := lang.Set(ext[1:]); err != nil {
+				log.Fatalf("Cannot infer language: %v", err)
+			}
 		}
 		in = f
 	}
@@ -72,5 +74,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
 	}
-	jutgelint.CommentCode(warns, bytes.NewReader(code), out)
+	if err := jutgelint.CommentCode(warns, bytes.NewReader(code), out); err != nil {
+		log.Fatalf("Could not comment code: %v", err)
+	}
 }

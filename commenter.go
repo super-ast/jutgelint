@@ -5,6 +5,7 @@ package jutgelint
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -18,6 +19,9 @@ func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 	byLine := make([][]Warning, len(lines))
 	for c := range warns {
 		for _, warn := range warns[c] {
+			if warn.Line < 0 || warn.Line > len(lines) {
+				return errors.New("incorrect number of lines")
+			}
 			l := &byLine[warn.Line]
 			*l = append(*l, warn)
 		}
@@ -25,8 +29,8 @@ func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 	for i, l := range lines {
 		lineWarns := byLine[i]
 		fmt.Fprintf(w, l)
-		for i, warn := range lineWarns {
-			if i == 0 {
+		for j, warn := range lineWarns {
+			if j == 0 {
 				fmt.Fprintf(w, " // ")
 			} else {
 				fmt.Fprintf(w, ", ")
