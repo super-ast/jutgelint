@@ -23,8 +23,31 @@ func init() {
 
 func main() {
 	flag.Parse()
+	args := flag.Args()
 
-	code, err := ioutil.ReadAll(os.Stdin)
+	if len(args) > 2 {
+		flag.Usage()
+	}
+
+	in := os.Stdin
+	out := os.Stdout
+
+	if len(args) >= 1 {
+		f, err := os.Open(args[0])
+		if err != nil {
+			log.Fatalf("Cannot open file: %v", err)
+		}
+		in = f
+	}
+	if len(args) >= 2 {
+		f, err := os.Create(args[1])
+		if err != nil {
+			log.Fatalf("Cannot open file: %v", err)
+		}
+		out = f
+	}
+
+	code, err := ioutil.ReadAll(in)
 	if err != nil {
 		log.Fatalf("Error when reading code: %v", err)
 	}
@@ -37,5 +60,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
 	}
-	jutgelint.CommentCode(warns, bytes.NewReader(code), os.Stdout)
+	jutgelint.CommentCode(warns, bytes.NewReader(code), out)
 }
