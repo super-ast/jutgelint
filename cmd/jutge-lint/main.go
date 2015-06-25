@@ -36,6 +36,7 @@ func main() {
 
 	if len(args) > 2 {
 		flag.Usage()
+		os.Exit(2)
 	}
 
 	in := os.Stdin
