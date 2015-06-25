@@ -25,15 +25,15 @@ func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 	for i, l := range lines {
 		lineWarns := byLine[i]
 		fmt.Fprintf(w, l)
-		fmt.Fprintf(w, " // ")
 		for i, warn := range lineWarns {
-			if i > 0 {
+			if i == 0 {
+				fmt.Fprintf(w, " // ")
+			} else {
 				fmt.Fprintf(w, ", ")
 			}
 			fmt.Fprintf(w, warn.Long)
 		}
 		fmt.Fprintf(w, "\n")
-
 	}
 	return nil
 }
