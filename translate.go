@@ -12,15 +12,18 @@ import (
 type Lang int
 
 const (
-	LANG_CPP Lang = iota
-	LANG_GO
+	LangAuto Lang = iota
+	LangCpp
+	LangGo
 )
 
 func (l *Lang) String() string {
 	switch *l {
-	case LANG_CPP:
+	case LangAuto:
+		return "auto"
+	case LangCpp:
 		return "c++"
-	case LANG_GO:
+	case LangGo:
 		return "go"
 	}
 	return ""
@@ -30,9 +33,9 @@ func (l *Lang) Set(s string) error {
 	s = strings.ToLower(s)
 	switch strings.ToLower(s) {
 	case "c++", "cpp":
-		*l = LANG_CPP
+		*l = LangCpp
 	case "go", "golang":
-		*l = LANG_GO
+		*l = LangGo
 	default:
 		return errors.New("unknown language")
 	}
@@ -41,9 +44,9 @@ func (l *Lang) Set(s string) error {
 
 func EncodeJsonFromCode(l Lang, r io.Reader, w io.Writer) error {
 	switch l {
-	case LANG_CPP:
+	case LangCpp:
 		return encodeJsonFromCppCode(r, w)
-	case LANG_GO:
+	case LangGo:
 		return encodeJsonFromGoCode(r, w)
 	default:
 		return errors.New("unknown language")

@@ -9,16 +9,17 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/mvdan/jutgelint"
 )
 
 var (
-	lang jutgelint.Lang
+	lang jutgelint.Lang = jutgelint.LangAuto
 )
 
 func init() {
-	flag.Var(&lang, "lang", "Language to use (c++, go)")
+	flag.Var(&lang, "lang", "Language to use (auto, c++, go)")
 }
 
 func main() {
@@ -36,6 +37,10 @@ func main() {
 		f, err := os.Open(args[0])
 		if err != nil {
 			log.Fatalf("Cannot open file: %v", err)
+		}
+		if lang == jutgelint.LangAuto {
+			ext := filepath.Ext(args[0])
+			lang.Set(ext[1:])
 		}
 		in = f
 	}
