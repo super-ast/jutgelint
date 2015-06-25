@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -24,13 +25,18 @@ func init() {
 func main() {
 	flag.Parse()
 
+	code, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatalf("Error when reading code: %v", err)
+	}
 	var json bytes.Buffer
-	jutgelint.EncodeJsonFromCode(lang, os.Stdin, &json)
+	if err := jutgelint.EncodeJsonFromCode(lang, bytes.NewReader(code), &json); err != nil {
+		log.Fatalf("Could not translate code into json: %v", err)
+	}
+
 	warns, err := jutgelint.RunChecker(&json)
 	if err != nil {
 		log.Fatalf("Error when running the checker: %v", err)
 	}
-	for c := range warns {
-		fmt.Printf("%#v\n", c)
-	}
+	jutgelint.CommentCode(warns, bytes.NewReader(code), os.Stdout)
 }

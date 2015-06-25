@@ -5,7 +5,7 @@ package jutgelint
 
 import "io"
 
-func encodeJsonFromCppCode(i io.Reader, w io.Writer) error {
+func encodeJsonFromCppCode(r io.Reader, w io.Writer) error {
 	// TODO
 	return nil
 }

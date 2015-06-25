@@ -3,27 +3,37 @@
 
 package jutgelint
 
-import "bytes"
+import (
+	"bufio"
+	"fmt"
+	"io"
+)
 
-func CommentCode(warns []Warning, lines []string) []string {
-	byLine := make([][]Warning, len(lines))
-	for _, w := range warns {
-		l := &byLine[w.Line]
-		*l = append(*l, w)
+func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
+	var lines []string
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
-	var comm []string
+	byLine := make([][]Warning, len(lines))
+	for c := range warns {
+		for _, warn := range warns[c] {
+			l := &byLine[warn.Line]
+			*l = append(*l, warn)
+		}
+	}
 	for i, l := range lines {
 		lineWarns := byLine[i]
-		b := bytes.NewBufferString(l)
-		b.WriteString(" // ")
-		for i, w := range lineWarns {
+		fmt.Fprintf(w, l)
+		fmt.Fprintf(w, " // ")
+		for i, warn := range lineWarns {
 			if i > 0 {
-				b.WriteString(", ")
+				fmt.Fprintf(w, ", ")
 			}
-			b.WriteString(w.Long)
+			fmt.Fprintf(w, warn.Long)
 		}
-		comm = append(comm, b.String())
+		fmt.Fprintf(w, "\n")
 
 	}
-	return comm
+	return nil
 }

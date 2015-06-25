@@ -25,7 +25,7 @@ type Warning struct {
 	Long  string `json:"long_description"`
 }
 
-func RunChecker(i io.Reader) (Warnings, error) {
+func RunChecker(r io.Reader) (Warnings, error) {
 	cmd := exec.Command("check", checkOpts...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -38,7 +38,7 @@ func RunChecker(i io.Reader) (Warnings, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	io.Copy(stdin, i)
+	io.Copy(stdin, r)
 	stdin.Close()
 	var warns Warnings
 	if err := json.NewDecoder(stdout).Decode(&warns); err != nil {

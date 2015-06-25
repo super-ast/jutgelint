@@ -13,9 +13,9 @@ import (
 	"github.com/mvdan/superast"
 )
 
-func encodeJsonFromGoCode(i io.Reader, w io.Writer) error {
+func encodeJsonFromGoCode(r io.Reader, w io.Writer) error {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, "stdin.go", i, 0)
+	f, err := parser.ParseFile(fset, "stdin.go", r, 0)
 	if err != nil {
 		return err
 	}

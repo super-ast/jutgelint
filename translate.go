@@ -39,12 +39,12 @@ func (l *Lang) Set(s string) error {
 	return nil
 }
 
-func EncodeJsonFromCode(l Lang, i io.Reader, w io.Writer) error {
+func EncodeJsonFromCode(l Lang, r io.Reader, w io.Writer) error {
 	switch l {
 	case LANG_CPP:
-		return encodeJsonFromCppCode(i, w)
+		return encodeJsonFromCppCode(r, w)
 	case LANG_GO:
-		return encodeJsonFromGoCode(i, w)
+		return encodeJsonFromGoCode(r, w)
 	default:
 		return errors.New("unknown language")
 	}
