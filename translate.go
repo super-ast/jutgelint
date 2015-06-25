@@ -32,7 +32,7 @@ func (l *Lang) String() string {
 func (l *Lang) Set(s string) error {
 	s = strings.ToLower(s)
 	switch strings.ToLower(s) {
-	case "c++", "cpp":
+	case "c++", "cpp", "cc":
 		*l = LangCpp
 	case "go", "golang":
 		*l = LangGo
