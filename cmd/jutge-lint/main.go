@@ -59,5 +59,7 @@ func main() {
 		out = f
 	}
 
-	jutgelint.CheckAndCommentCode(lang, in, out)
+	if err := jutgelint.CheckAndCommentCode(lang, in, out); err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 }

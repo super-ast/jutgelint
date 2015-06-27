@@ -18,7 +18,11 @@ func encodeFromCpp(r io.Reader, w io.Writer) error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	io.Copy(stdin, r)
-	stdin.Close()
+	if _, err := io.Copy(stdin, r); err != nil {
+		return err
+	}
+	if err := stdin.Close(); err != nil {
+		return err
+	}
 	return cmd.Wait()
 }

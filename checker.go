@@ -57,8 +57,12 @@ func RunChecker(r io.Reader, checks int) (Warnings, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	io.Copy(stdin, r)
-	stdin.Close()
+	if _, err := io.Copy(stdin, r); err != nil {
+		return nil, err
+	}
+	if err := stdin.Close(); err != nil {
+		return nil, err
+	}
 	var warns Warnings
 	if err := json.NewDecoder(stdout).Decode(&warns); err != nil {
 		return nil, err
