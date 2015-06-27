@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sort"
 )
 
 func CheckAndCommentCode(lang Lang, r io.Reader, w io.Writer) error {
@@ -30,6 +31,12 @@ func CheckAndCommentCode(lang Lang, r io.Reader, w io.Writer) error {
 	}
 	return nil
 }
+
+type sortedWarns []Warning
+
+func (sw sortedWarns) Len() int           { return len(sw) }
+func (sw sortedWarns) Swap(i, j int)      { sw[i], sw[j] = sw[j], sw[i] }
+func (sw sortedWarns) Less(i, j int) bool { return sw[i].Long < sw[j].Long }
 
 func CommentCode(lang Lang, warns Warnings, r io.Reader, w io.Writer) error {
 	var lines []string
@@ -52,6 +59,7 @@ func CommentCode(lang Lang, warns Warnings, r io.Reader, w io.Writer) error {
 	prefix := lang.InlineCommentPrefix()
 	for i, line := range lines {
 		lineWarns := byLine[i]
+		sort.Sort(sortedWarns(lineWarns))
 		fmt.Fprintf(w, line)
 		for j, warn := range lineWarns {
 			if j == 0 {
