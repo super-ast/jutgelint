@@ -188,7 +188,7 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	res := <-ret
 	if res.err != nil {
-		logPrintfReq(r, "Error: %v", err)
+		logPrintfReq(r, "Error: %v", res.err)
 		http.Error(w, res.err.Error(), http.StatusInternalServerError)
 		return
 	}
