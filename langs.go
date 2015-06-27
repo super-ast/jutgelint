@@ -6,6 +6,7 @@ package jutgelint
 import (
 	"errors"
 	"io"
+	"path/filepath"
 	"strings"
 )
 
@@ -16,6 +17,19 @@ const (
 	LangCpp
 	LangGo
 )
+
+func ParseLang(s string) (Lang, error) {
+	var l Lang
+	err := l.Set(s)
+	return l, err
+}
+
+func ParseLangFilename(filename string) (Lang, error) {
+	var l Lang
+	ext := filepath.Ext(filename)
+	err := l.Set(ext[1:])
+	return l, err
+}
 
 func (l *Lang) String() string {
 	switch *l {

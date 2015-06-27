@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/mvdan/jutgelint"
 )
@@ -47,8 +46,8 @@ func main() {
 			log.Fatalf("Cannot open file: %v", err)
 		}
 		if lang == jutgelint.LangAuto {
-			ext := filepath.Ext(args[0])
-			if err := lang.Set(ext[1:]); err != nil {
+			var err error
+			if lang, err = jutgelint.ParseLangFilename(args[0]); err != nil {
 				log.Fatalf("Cannot infer language: %v", err)
 			}
 		}
