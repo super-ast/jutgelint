@@ -30,6 +30,9 @@ const (
 
 	maxSize = 1 * 1024 * 1024
 	timeout = 10 * time.Second
+
+	cmdName = "jutge-lintd"
+	version = "0.0.1"
 )
 
 var (
@@ -94,6 +97,13 @@ func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func logPrintfReq(r *http.Request, format string, v ...interface{}) {
+	format = "%s %s %s " + format
+	rv := []interface{}{r.RemoteAddr, r.Proto, r.Method}
+	v = append(rv, v...)
+	log.Printf(format, v...)
+}
+
 func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	if _, e := templates[r.URL.Path]; e {
 		err := tmpl.ExecuteTemplate(w, r.URL.Path,
@@ -105,26 +115,29 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 				FieldCode: fieldCode,
 			})
 		if err != nil {
-			log.Printf("Error executing template for %s: %v", r.URL.Path, err)
+			logPrintfReq(r, "Error executing template for %s: %v", r.URL.Path, err)
 		}
 		return
 	}
 	id, err := IDFromString(r.URL.Path[1:])
 	if err != nil {
+		logPrintfReq(r, "Bad request: %v", err)
 		http.Error(w, invalidID, http.StatusBadRequest)
 		return
 	}
 	review, err := h.store.Get(id)
-	if err == ErrReviewNotFound {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	} else if err != nil {
-		log.Printf("Unknown error on GET: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err == ErrReviewNotFound {
+			status = http.StatusNotFound
+		}
+		logPrintfReq(r, "Error: %v", err)
+		http.Error(w, err.Error(), status)
 		return
 	}
 	defer review.Close()
 	setHeaders(w.Header(), id, review)
+	logPrintfReq(r, "Served: %s/%s", *siteURL, id)
 	http.ServeContent(w, r, "", review.ModTime(), review)
 }
 
@@ -142,13 +155,11 @@ func (h *httpHandler) postWorker() {
 		req := <-h.post
 		comm, err := commentCode(req.code, req.lang)
 		if err != nil {
-			log.Printf("Could not check and comment code: %v", err)
 			req.ret <- postResult{err: err}
 			continue
 		}
 		id, err := h.store.Put(comm)
 		if err != nil {
-			log.Printf("Unknown error on POST: %v", err)
 			req.ret <- postResult{err: err}
 			continue
 		}
@@ -162,6 +173,7 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 	code, lang, err := getCodeFromForm(r)
 	if err != nil {
+		logPrintfReq(r, "Bad request: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -173,9 +185,11 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	res := <-ret
 	if res.err != nil {
+		logPrintfReq(r, "Error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	logPrintfReq(r, "Created: %s", res.url)
 	fmt.Fprintf(w, "%s\n", res.url)
 }
 
@@ -183,9 +197,10 @@ func main() {
 	flag.Parse()
 	loadTemplates()
 	if *workers < 1 {
-		fmt.Println("Cannot have less than 1 workers!")
-		os.Exit(1)
+		log.Fatalf("Cannot have less than 1 workers!")
 	}
+	log.SetOutput(os.Stdout)
+	log.SetPrefix(fmt.Sprintf("%s %s ", cmdName, version))
 	log.Printf("siteURL = %s", *siteURL)
 	log.Printf("listen  = %s", *listen)
 	log.Printf("workers = %d", *workers)
