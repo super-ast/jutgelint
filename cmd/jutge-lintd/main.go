@@ -14,7 +14,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mvdan/jutgelint"
+	"github.com/super-ast/jutgelint"
 )
 
 const (

@@ -6,7 +6,7 @@ resulting warnings to place inline comments in the original code.
 
 ## Setup
 
-	go get github.com/mvdan/jutgelint/cmd/jutge-lint
+	go get github.com/super-ast/jutgelint/cmd/jutge-lint
 
 * The C++ AST translator `superast-cpp` must be installed and in your `$PATH`
 * The Go AST translator is already bundled in the static Go binaries

@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/mvdan/jutgelint"
+	"github.com/super-ast/jutgelint"
 )
 
 var lang = jutgelint.LangAuto
