@@ -5,10 +5,31 @@ package jutgelint
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 )
+
+func CheckAndCommentCode(lang Lang, r io.Reader, w io.Writer) error {
+	code, err := ioutil.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("could not read code: %v")
+	}
+	var json bytes.Buffer
+	if err := EncodeJsonAST(lang, bytes.NewReader(code), &json); err != nil {
+		return fmt.Errorf("could not translate code: %v")
+	}
+	warns, err := RunChecker(&json, CheckAll)
+	if err != nil {
+		return fmt.Errorf("could not check code: %v")
+	}
+	if err := CommentCode(warns, bytes.NewReader(code), w); err != nil {
+		return fmt.Errorf("could not comment code: %v")
+	}
+	return nil
+}
 
 func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 	var lines []string

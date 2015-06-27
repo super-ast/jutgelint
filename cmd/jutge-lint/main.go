@@ -4,10 +4,8 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -61,20 +59,5 @@ func main() {
 		out = f
 	}
 
-	code, err := ioutil.ReadAll(in)
-	if err != nil {
-		log.Fatalf("Error when reading code: %v", err)
-	}
-	var json bytes.Buffer
-	if err := jutgelint.EncodeJsonAST(lang, bytes.NewReader(code), &json); err != nil {
-		log.Fatalf("Could not translate code into json: %v", err)
-	}
-
-	warns, err := jutgelint.RunChecker(&json, jutgelint.CheckAll)
-	if err != nil {
-		log.Fatalf("Error when running the checker: %v", err)
-	}
-	if err := jutgelint.CommentCode(warns, bytes.NewReader(code), out); err != nil {
-		log.Fatalf("Could not comment code: %v", err)
-	}
+	jutgelint.CheckAndCommentCode(lang, in, out)
 }
