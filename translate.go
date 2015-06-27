@@ -26,7 +26,7 @@ func (l *Lang) String() string {
 	case LangGo:
 		return "go"
 	}
-	return ""
+	return "unknown"
 }
 
 func (l *Lang) Set(s string) error {
@@ -39,6 +39,14 @@ func (l *Lang) Set(s string) error {
 		return errors.New("unknown language")
 	}
 	return nil
+}
+
+func (l *Lang) InlineCommentPrefix() string {
+	switch *l {
+	case LangCpp, LangGo:
+		return " // "
+	}
+	return ""
 }
 
 func EncodeJsonAST(l Lang, r io.Reader, w io.Writer) error {

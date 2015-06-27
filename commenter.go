@@ -25,13 +25,13 @@ func CheckAndCommentCode(lang Lang, r io.Reader, w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("could not check code: %v")
 	}
-	if err := CommentCode(warns, bytes.NewReader(code), w); err != nil {
+	if err := CommentCode(lang, warns, bytes.NewReader(code), w); err != nil {
 		return fmt.Errorf("could not comment code: %v")
 	}
 	return nil
 }
 
-func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
+func CommentCode(lang Lang, warns Warnings, r io.Reader, w io.Writer) error {
 	var lines []string
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -49,12 +49,13 @@ func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 			*l = append(*l, warn)
 		}
 	}
+	prefix := lang.InlineCommentPrefix()
 	for i, l := range lines {
 		lineWarns := byLine[i]
 		fmt.Fprintf(w, l)
 		for j, warn := range lineWarns {
 			if j == 0 {
-				fmt.Fprintf(w, " // ")
+				fmt.Fprintf(w, prefix)
 			} else {
 				fmt.Fprintf(w, ", ")
 			}
