@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,11 +12,14 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/mvdan/jutgelint"
 )
 
 const (
-	// Name of the HTTP form field when uploading code
-	fieldName = "code"
+	// Name of the HTTP form fields when uploading code
+	fieldCode = "code"
+	fieldLang = "lang"
 	// Content-Type when serving text
 	contentType = "text/plain; charset=utf-8"
 
@@ -32,18 +36,27 @@ var (
 	listen  = flag.String("l", ":8080", "Host and port to listen to")
 )
 
-func getContentFromForm(r *http.Request) ([]byte, error) {
-	if value := r.FormValue(fieldName); len(value) > 0 {
-		return []byte(value), nil
+func getCodeFromForm(r *http.Request) ([]byte, jutgelint.Lang, error) {
+	var l jutgelint.Lang
+	if code := r.FormValue(fieldCode); len(code) > 0 {
+		lang, err := jutgelint.ParseLang(r.FormValue(fieldLang))
+		if err != nil {
+			return nil, l, err
+		}
+		return []byte(code), lang, nil
 	}
-	if f, _, err := r.FormFile(fieldName); err == nil {
+	if f, h, err := r.FormFile(fieldCode); err == nil {
 		defer f.Close()
 		content, err := ioutil.ReadAll(f)
 		if err == nil && len(content) > 0 {
-			return content, nil
+			lang, err := jutgelint.ParseLangFilename(h.Filename)
+			if err != nil {
+				return nil, l, err
+			}
+			return content, lang, nil
 		}
 	}
-	return nil, errors.New("no code provided")
+	return nil, l, errors.New("no code provided")
 }
 
 func setHeaders(header http.Header, id ID, review Review) {
@@ -72,13 +85,13 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		err := tmpl.ExecuteTemplate(w, r.URL.Path,
 			struct {
 				SiteURL   string
-				FieldName string
+				FieldCode string
 			}{
 				SiteURL:   *siteURL,
-				FieldName: fieldName,
+				FieldCode: fieldCode,
 			})
 		if err != nil {
-			log.Printf("Error executing template for %s: %s", r.URL.Path, err)
+			log.Printf("Error executing template for %s: %v", r.URL.Path, err)
 		}
 		return
 	}
@@ -92,7 +105,7 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	} else if err != nil {
-		log.Printf("Unknown error on GET: %s", err)
+		log.Printf("Unknown error on GET: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -101,16 +114,31 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, "", review.ModTime(), review)
 }
 
+func commentCode(code []byte, lang jutgelint.Lang) ([]byte, error) {
+	in := bytes.NewReader(code)
+	var out bytes.Buffer
+	if err := jutgelint.CheckAndCommentCode(lang, in, &out); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
+}
+
 func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
-	content, err := getContentFromForm(r)
+	code, lang, err := getCodeFromForm(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	id, err := h.store.Put(content)
+	comm, err := commentCode(code, lang)
 	if err != nil {
-		log.Printf("Unknown error on POST: %s", err)
+		log.Printf("Could not check and comment code: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	id, err := h.store.Put(comm)
+	if err != nil {
+		log.Printf("Unknown error on POST: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -127,7 +155,7 @@ func main() {
 	var err error
 	handler.store, err = NewFileStore("code")
 	if err != nil {
-		log.Fatalf("Could not setup file store: %s", err)
+		log.Fatalf("Could not setup file store: %v", err)
 	}
 
 	finalHandler := http.TimeoutHandler(handler, timeout, "")

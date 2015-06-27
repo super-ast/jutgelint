@@ -28,15 +28,15 @@ var templates = map[string]string{
 	"/": `<html>
 <body style="text-align:center">
 <div style="inline-block">
-	<form action="{{.SiteURL}}/go" method="post" enctype="multipart/form-data">
-		<textarea cols=80 rows=24 name="{{.FieldName}}"></textarea>
+	<form action="{{.SiteURL}}" method="post" enctype="multipart/form-data">
+		<textarea cols=80 rows=24 name="{{.FieldCode}}"></textarea>
 		<br/>
 		<button type="submit">Upload Go code</button>
 	</form>
 	<br/>
-	<form action="{{.SiteURL}}/go" method="post" enctype="multipart/form-data">
-		<input type="file" name="{{.FieldName}}"></input>
-		<button type="submit">Upload Go code</button>
+	<form action="{{.SiteURL}}" method="post" enctype="multipart/form-data">
+		<input type="file" name="{{.FieldCode}}"></input>
+		<button type="submit">Upload file</button>
 	</form>
 </div>
 </body>
