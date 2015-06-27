@@ -191,7 +191,11 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logPrintfReq(r, "Created: %s", res.url)
-	fmt.Fprintln(w, res.url)
+	if r.URL.Path == "/redirect" {
+		http.Redirect(w, r, res.url, 302)
+	} else {
+		fmt.Fprintln(w, res.url)
+	}
 }
 
 func main() {
