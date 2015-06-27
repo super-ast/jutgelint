@@ -1,2 +1,3 @@
 cmd/jutge-lint/jutge-lint
 cmd/jutge-lintd/jutge-lintd
+cmd/jutge-lintd/code/
