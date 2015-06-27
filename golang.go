@@ -10,7 +10,7 @@ import (
 	"go/token"
 	"io"
 
-	"github.com/mvdan/superast"
+	"github.com/super-ast/gotranslate"
 )
 
 func encodeFromGo(r io.Reader, w io.Writer) error {
@@ -19,7 +19,7 @@ func encodeFromGo(r io.Reader, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	a := superast.NewAST(fset)
+	a := gotranslate.NewAST(fset)
 	ast.Walk(a, f)
 	return json.NewEncoder(w).Encode(a.RootBlock)
 }
