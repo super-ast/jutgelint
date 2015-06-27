@@ -23,6 +23,9 @@ func init() {
 		fmt.Fprintf(os.Stderr, "if none are specified.\n\n")
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\nExamples:\n")
+		fmt.Fprintf(os.Stderr, "    jutgelint input.go output.go\n")
+		fmt.Fprintf(os.Stderr, "    jutgelint -lang=cpp <input.cc >output.cc\n")
 	}
 }
 
