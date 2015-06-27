@@ -21,6 +21,7 @@ const (
 	// Name of the HTTP form fields when uploading code
 	fieldCode = "code"
 	fieldLang = "lang"
+
 	// Content-Type when serving text
 	contentType = "text/plain; charset=utf-8"
 
@@ -32,7 +33,7 @@ const (
 	timeout = 10 * time.Second
 
 	cmdName = "jutge-lintd"
-	version = "0.0.1"
+	version = "alpha1"
 )
 
 var (
@@ -190,7 +191,7 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logPrintfReq(r, "Created: %s", res.url)
-	fmt.Fprintf(w, "%s\n", res.url)
+	fmt.Fprintln(w, res.url)
 }
 
 func main() {
@@ -217,7 +218,6 @@ func main() {
 	for i := 0; i < *workers; i++ {
 		go handler.postWorker()
 	}
-
 	//http.Handle("/", http.TimeoutHandler(handler, timeout, ""))
 	http.Handle("/", handler)
 	log.Println("Up and running!")
