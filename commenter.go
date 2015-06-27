@@ -15,18 +15,18 @@ import (
 func CheckAndCommentCode(lang Lang, r io.Reader, w io.Writer) error {
 	code, err := ioutil.ReadAll(r)
 	if err != nil {
-		return fmt.Errorf("could not read code: %v")
+		return fmt.Errorf("could not read code: %v", err)
 	}
 	var json bytes.Buffer
 	if err := EncodeJsonAST(lang, bytes.NewReader(code), &json); err != nil {
-		return fmt.Errorf("could not translate code: %v")
+		return fmt.Errorf("could not translate code: %v", err)
 	}
 	warns, err := RunChecker(&json, CheckAll)
 	if err != nil {
-		return fmt.Errorf("could not check code: %v")
+		return fmt.Errorf("could not check code: %v", err)
 	}
 	if err := CommentCode(lang, warns, bytes.NewReader(code), w); err != nil {
-		return fmt.Errorf("could not comment code: %v")
+		return fmt.Errorf("could not comment code: %v", err)
 	}
 	return nil
 }
@@ -45,14 +45,14 @@ func CommentCode(lang Lang, warns Warnings, r io.Reader, w io.Writer) error {
 			if ln < 0 || ln >= len(lines) {
 				return errors.New("incorrect number of lines")
 			}
-			l := &byLine[ln]
-			*l = append(*l, warn)
+			lineWarns := &byLine[ln]
+			*lineWarns = append(*lineWarns, warn)
 		}
 	}
 	prefix := lang.InlineCommentPrefix()
-	for i, l := range lines {
+	for i, line := range lines {
 		lineWarns := byLine[i]
-		fmt.Fprintf(w, l)
+		fmt.Fprintf(w, line)
 		for j, warn := range lineWarns {
 			if j == 0 {
 				fmt.Fprintf(w, prefix)
