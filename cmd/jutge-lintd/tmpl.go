@@ -31,7 +31,11 @@ var templates = map[string]string{
 	<form action="{{.SiteURL}}/redirect" method="post" enctype="multipart/form-data">
 		<textarea cols=80 rows=24 name="{{.FieldCode}}"></textarea>
 		<br/>
-		<button type="submit">Upload Go code</button>
+		<select name="{{.FieldLang}}">
+			<option value="cpp">C++</option>
+			<option value="go">Go</option>
+		</select>
+		<button type="submit">Upload code</button>
 	</form>
 	<br/>
 	<form action="{{.SiteURL}}/redirect" method="post" enctype="multipart/form-data">

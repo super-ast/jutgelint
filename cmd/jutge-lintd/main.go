@@ -111,9 +111,11 @@ func (h *httpHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 			struct {
 				SiteURL   string
 				FieldCode string
+				FieldLang string
 			}{
 				SiteURL:   *siteURL,
 				FieldCode: fieldCode,
+				FieldLang: fieldLang,
 			})
 		if err != nil {
 			logPrintfReq(r, "Error executing template for %s: %v", r.URL.Path, err)
