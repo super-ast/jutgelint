@@ -46,21 +46,12 @@ func getCheckOpts(checks int) []string {
 
 func RunChecker(r io.Reader, checks int) (Warnings, error) {
 	cmd := exec.Command("check", getCheckOpts(checks)...)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return nil, err
-	}
+	cmd.Stdin = r
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(stdin, r); err != nil {
-		return nil, err
-	}
-	if err := stdin.Close(); err != nil {
 		return nil, err
 	}
 	var warns Warnings
