@@ -40,10 +40,12 @@ func CommentCode(warns Warnings, r io.Reader, w io.Writer) error {
 	byLine := make([][]Warning, len(lines))
 	for c := range warns {
 		for _, warn := range warns[c] {
-			if warn.Line < 0 || warn.Line > len(lines) {
+			// Assuming they start by 1 in our json AST
+			ln := warn.Line - 1
+			if ln < 0 || ln >= len(lines) {
 				return errors.New("incorrect number of lines")
 			}
-			l := &byLine[warn.Line]
+			l := &byLine[ln]
 			*l = append(*l, warn)
 		}
 	}
