@@ -21,6 +21,5 @@ func encodeFromGo(r io.Reader, w io.Writer) error {
 	}
 	a := superast.NewAST(fset)
 	ast.Walk(a, f)
-
 	return json.NewEncoder(w).Encode(a.RootBlock)
 }
