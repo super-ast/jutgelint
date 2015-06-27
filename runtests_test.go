@@ -45,42 +45,42 @@ func doTest(t *testing.T, dir, inPath string) {
 	outPath := filepath.Join(testsDir, dir, "out"+filepath.Ext(base))
 	in, err := os.Open(inPath)
 	if err != nil {
-		t.Errorf("Failed opening in file: %v", err)
+		t.Errorf("Failed opening in file %s: %v", inPath, err)
 		return
 	}
 	defer in.Close()
 	var out bytes.Buffer
 	if err := CheckAndCommentCode(lang, in, &out); err != nil {
-		t.Errorf("Failed checking and commenting code: %v", err)
+		t.Errorf("Failed checking and commenting code '%s': %v", inPath, err)
 		return
 	}
 	got := out.Bytes()
 	if *write {
 		out, err := os.Create(outPath)
 		if err != nil {
-			t.Errorf("Failed opening out file: %v", err)
+			t.Errorf("Failed opening out file '%s': %v", outPath, err)
 			return
 		}
 		defer out.Close()
 		_, err = out.Write(got)
 		if err != nil {
-			t.Errorf("Failed writing out file: %v", err)
+			t.Errorf("Failed writing out file '%s': %v", outPath, err)
 			return
 		}
 	} else {
 		out, err := os.Open(outPath)
 		if err != nil {
-			t.Errorf("Failed opening out file: %v", err)
+			t.Errorf("Failed opening out file '%s': %v", outPath, err)
 			return
 		}
 		defer out.Close()
 		want, err := ioutil.ReadAll(out)
 		if err != nil {
-			t.Errorf("Failed reading out file: %v", err)
+			t.Errorf("Failed reading out file '%s': %v", outPath, err)
 			return
 		}
 		if string(want) != string(got) {
-			t.Errorf("Mismatching outputs in the test '%s'", dir)
+			t.Errorf("Mismatching outputs for '%s'", inPath)
 			return
 		}
 	}
@@ -90,7 +90,7 @@ func doTestDir(t *testing.T, dir string) {
 	inPattern := filepath.Join(testsDir, dir, inGlob)
 	inPaths, err := filepath.Glob(inPattern)
 	if err != nil {
-		t.Errorf("Failed globbing in pattern: %v", err)
+		t.Errorf("Globbing failed: %v", err)
 		return
 	}
 	for _, path := range inPaths {
