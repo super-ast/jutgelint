@@ -5,7 +5,6 @@ package jutgelint
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -27,31 +26,23 @@ const (
 	inGlob   = "in.*"
 )
 
-func getPathMatching(dir, file string) (string, error) {
+func inPaths(dir, file string) (string, error) {
 	pattern := filepath.Join(testsDir, dir, file)
 	paths, err := filepath.Glob(pattern)
 	if err != nil {
 		return "", err
 	}
-	if len(paths) != 1 {
-		return "", errors.New("one matching file expected")
-	}
 	return paths[0], nil
 }
 
-func doTest(t *testing.T, name string) {
-	inPath, err := getPathMatching(name, inGlob)
-	if err != nil {
-		t.Errorf("Failed opening in file: %v", err)
-		return
-	}
+func doTest(t *testing.T, dir, inPath string) {
 	base := filepath.Base(inPath)
 	lang, err := ParseLangFilename(base)
 	if err != nil {
 		t.Errorf("Could not infer language: %v", err)
 		return
 	}
-	outPath := filepath.Join(testsDir, name, "out"+filepath.Ext(base))
+	outPath := filepath.Join(testsDir, dir, "out"+filepath.Ext(base))
 	in, err := os.Open(inPath)
 	if err != nil {
 		t.Errorf("Failed opening in file: %v", err)
@@ -89,9 +80,21 @@ func doTest(t *testing.T, name string) {
 			return
 		}
 		if string(want) != string(got) {
-			t.Errorf("Mismatching outputs in the test '%s'", name)
+			t.Errorf("Mismatching outputs in the test '%s'", dir)
 			return
 		}
+	}
+}
+
+func doTestDir(t *testing.T, dir string) {
+	inPattern := filepath.Join(testsDir, dir, inGlob)
+	inPaths, err := filepath.Glob(inPattern)
+	if err != nil {
+		t.Errorf("Failed globbing in pattern: %v", err)
+		return
+	}
+	for _, path := range inPaths {
+		doTest(t, dir, path)
 	}
 }
 
@@ -101,13 +104,13 @@ func TestCases(t *testing.T) {
 		return
 	}
 	if *name != "" {
-		doTest(t, *name)
+		doTestDir(t, *name)
 	} else {
 		for _, e := range entries {
 			if !e.IsDir() {
 				continue
 			}
-			doTest(t, e.Name())
+			doTestDir(t, e.Name())
 		}
 	}
 }
