@@ -189,7 +189,7 @@ func (h *httpHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	res := <-ret
 	if res.err != nil {
 		logPrintfReq(r, "Error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, res.err.Error(), http.StatusInternalServerError)
 		return
 	}
 	logPrintfReq(r, "Created: %s", res.url)
