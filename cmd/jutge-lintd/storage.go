@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -197,7 +196,7 @@ func (s *FileStore) Put(content []byte) (ID, error) {
 
 func pathFromID(id ID) string {
 	hexID := id.String()
-	return path.Join(hexID[:2], hexID[2:])
+	return filepath.Join(hexID[:2], hexID[2:])
 }
 
 func idFromPath(path string) (ID, error) {
