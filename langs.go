@@ -45,6 +45,8 @@ func (l *Lang) String() string {
 
 func (l *Lang) Set(s string) error {
 	switch strings.ToLower(s) {
+	case "", "auto":
+		*l = LangAuto
 	case "c++", "cpp", "cc":
 		*l = LangCpp
 	case "go", "golang":
